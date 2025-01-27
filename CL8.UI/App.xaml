@@ -1,0 +1,29 @@
+﻿<Application x:Class="CL8.UI.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:CL8.UI"
+             xmlns:tools="clr-namespace:CL8.UI.ViewModels.Tools"
+             xmlns:models="clr-namespace:CL8.UI.ViewModels.UserVMs"
+             xmlns:views="clr-namespace:CL8.UI.Views.Pages.Users"
+             StartupUri="/Views/Windows/MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <tools:ViewModelLocator x:Key="Locator" />
+
+            <DataTemplate DataType="{x:Type models:UserLoginViewModel}">
+                <views:UserLoginView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type models:UserRegisterViewModel}">
+                <views:UserRegisterView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type models:UserPageViewModel}">
+                <views:UserPageView />
+            </DataTemplate>
+
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/Styles/ButtonDictionary.xaml" />
+                <ResourceDictionary Source="/Resources/Styles/TextBoxDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
