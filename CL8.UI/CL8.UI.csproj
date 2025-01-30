@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CL8.BLL\CL8.BLL.csproj" />
     <ProjectReference Include="..\CL8.DAL\CL8.DAL.csproj" />
   </ItemGroup>
 

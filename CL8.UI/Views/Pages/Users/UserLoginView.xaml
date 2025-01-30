@@ -24,6 +24,11 @@
                 <Setter Property="FontSize" Value="20" />
                 <Setter Property="FontWeight" Value="ExtraBold" />
             </Style>
+            <Style x:Key="errorBlock" TargetType="{x:Type TextBlock}">
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="TextAlignment" Value="Center" />
+                <Setter Property="Foreground" Value="Red" />
+            </Style>
         </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -40,12 +45,12 @@
         </StackPanel>
         <StackPanel Grid.Row="2" Style="{StaticResource spStd}">
             <TextBlock Text="Password:" Style="{StaticResource lbl}" />
-            <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StdTBox}" />
+            <PasswordBox x:Name="pasBox" Style="{StaticResource PBox}" /> 
         </StackPanel>
         <StackPanel Grid.Row="3">
-            <TextBlock Text="{Binding ErrorMessage}" TextAlignment="Center" Foreground="Red" FontSize="15" />
+            <TextBlock Text="{Binding ErrorMessage}" Style="{StaticResource errorBlock}" />
             <StackPanel Style="{StaticResource spStd}">
-                <Button Content="Войти" Style="{StaticResource gBtn}" Command="{Binding LoginUserCmd}" />
+                <Button Content="Войти" Style="{StaticResource gBtn}" Command="{Binding LoginUserCmd}" CommandParameter="{Binding ElementName=pasBox}" />
                 <Button Content="Регистрация" Style="{StaticResource gBtn}" Command="{Binding ToRegisterViewCmd}" />
             </StackPanel>
         </StackPanel>

@@ -8,6 +8,7 @@ namespace CL8.DAL.Repositories
     public class UserRepository(MyContext myContext) : IRepository<User>
     {
         private readonly MyContext _ctx = myContext;
+        public IQueryable<User> GetAllEntities() => _ctx.Users.AsNoTracking().AsQueryable();
         public async Task<User> AddEntityAsync(User entity)
         {
             var entry = _ctx.Users.Entry(entity);
@@ -25,9 +26,9 @@ namespace CL8.DAL.Repositories
             return entity;
         }
 
-        public async Task<IEnumerable<User>> GetEntitiesAsync(Expression<Func<User, bool>> predicate) => await _ctx.Users.AsNoTracking().Where(predicate).ToListAsync();
+        public async Task<IEnumerable<User>> GetEntitiesAsync(Expression<Func<User, bool>> predicate) => await GetAllEntities().Where(predicate).ToListAsync();
 
-        public async Task<User> GetEntityAsync(Expression<Func<User, bool>> predicate) => await _ctx.Users.FirstOrDefaultAsync(predicate);
+        public async Task<User> GetEntityAsync(Expression<Func<User, bool>> predicate) => await GetAllEntities().FirstOrDefaultAsync(predicate);
 
         public async Task<User> UpdateEntityAsync(User entity)
         {

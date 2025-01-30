@@ -3,13 +3,14 @@ using System.Windows.Input;
 using CL8.UI.ViewModels.Tools;
 using CL8.UI.Infrastructure.Commands;
 using CL8.Interfaces;
-using CL8.DAL.Entities;
+using System.Windows.Controls;
+using CL8.BLL.Services.SpecialInterfaces;
 
 namespace CL8.UI.ViewModels.UserVMs
 {
-    public class UserLoginViewModel(IRepository<User> repository) : ViewModelBase
+    public class UserLoginViewModel(IUserService userService) : ViewModelBase
     {
-        private readonly IRepository<User> _userRepository = repository;
+        private readonly IUserService _userService = userService;
         private string? _login = string.Empty;
         public string? Login
         {
@@ -41,7 +42,7 @@ namespace CL8.UI.ViewModels.UserVMs
         public ICommand LoginUserCmd => _loginUserCmd ?? new LambdaCommand(LoginUserCmdExecuted, CanLoginUserCmdExecute);
         private bool CanLoginUserCmdExecute(object parameter)
         {
-            if(string.IsNullOrEmpty(Login) || string.IsNullOrEmpty(Password))
+            if(string.IsNullOrEmpty(Login))
             {
                 return false;
             }
@@ -52,28 +53,18 @@ namespace CL8.UI.ViewModels.UserVMs
         }
         private async void LoginUserCmdExecuted(object parameter)
         {
-            //User user = new() { Name = Login, Password = Password };
-            //App.CurrentUser = user;
-            //App.Store.NextPage(ViewModelLocator.UserPageViewModel);
-            //OnPropertyChanged(nameof(ViewModelLocator.MainViewModel.ViewModel));
-            var user = await _userRepository.GetEntityAsync(u => u.Name == Login);
-            if(user != null)
+            PasswordBox pBox = parameter as PasswordBox;
+
+            var result = await _userService.TryLoginAsync(Login, pBox.Password);
+            if(result.Value is not null)
             {
-                var confirmed = Equals(user.Password, Password);
-                if(confirmed)
-                {
-                    App.CurrentUser = user;
-                    App.Store.NextPage(ViewModelLocator.UserPageViewModel);
-                    OnPropertyChanged(nameof(ViewModelLocator.MainViewModel.ViewModel));
-                }
-                else
-                {
-                    ErrorMessage = $"Неверный пароль!";
-                }
+                App.CurrentUser = result.Value;
+                App.Store.NextPage(ViewModelLocator.UserPageViewModel);
+                OnPropertyChanged(nameof(ViewModelLocator.MainViewModel.ViewModel));
             }
             else
             {
-                ErrorMessage = $"Пользователя с таким логином не зарегистрировано!";
+                ErrorMessage = result.Message;
             }
         }
     }

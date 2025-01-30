@@ -2,9 +2,10 @@
 using CL8.UI.ViewModels.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using CL8.DAL.Entities;
+using CL8.BLL;
 using System.Windows;
 using CL8.DAL.Tools;
+using CL8.BLL.Infrastructure;
 
 namespace CL8.UI
 {
@@ -16,7 +17,7 @@ namespace CL8.UI
         private static IHost? _host;
         public static IHost Host => _host ?? Program.CreateHostBuilder(Environment.GetCommandLineArgs()).Build();
 
-        public static User? CurrentUser { get; set; } 
+        public static UserDto? CurrentUser { get; set; } 
         public static NavigationStore Store { get; set; } = new();
 
         protected override void OnStartup(StartupEventArgs e)
@@ -37,6 +38,7 @@ namespace CL8.UI
         public static void ConfigureServices(HostBuilderContext context, IServiceCollection services) => services
             .AddDatabase()
             .AddRepositories()
+            .AddServices()
             .AddViewModels();
     }
 }

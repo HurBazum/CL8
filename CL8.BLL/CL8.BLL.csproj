@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CL8.DAL\CL8.DAL.csproj" />
+    <ProjectReference Include="..\CL8.Interfaces\CL8.Interfaces.csproj" />
+  </ItemGroup>
+
+</Project>

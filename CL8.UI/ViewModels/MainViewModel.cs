@@ -25,7 +25,7 @@ namespace CL8.UI.ViewModels
             OnPropertyChanged(nameof(ViewModel));
         }
 
-        // look at Tokin!
+
         public MainViewModel()
         {
             _nav = App.Store;

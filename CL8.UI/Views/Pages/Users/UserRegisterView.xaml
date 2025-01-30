@@ -17,7 +17,7 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.Resources>
-            <Style TargetType="StackPanel">
+            <Style TargetType="StackPanel" x:Key="stdSP">
                 <Setter Property="Orientation" Value="Horizontal" />
                 <Setter Property="HorizontalAlignment" Value="Center" />
                 <Setter Property="VerticalAlignment" Value="Center" />
@@ -32,24 +32,27 @@
                 <Setter Property="FontWeight" Value="ExtraBold" />
             </Style>
         </Grid.Resources>
-        <StackPanel>
+        <StackPanel Style="{StaticResource stdSP}">
             <TextBlock Style="{StaticResource Header}" Text="Регистрация" />
         </StackPanel>
-        <StackPanel Grid.Row="1">
+        <StackPanel Grid.Row="1" Style="{StaticResource stdSP}">
             <TextBlock Text="Login:" Style="{StaticResource lbl}" />
-            <TextBox Text="" Style="{StaticResource StdTBox}" />
+            <TextBox Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StdTBox}" />
         </StackPanel>
-        <StackPanel Grid.Row="2">
+        <StackPanel Grid.Row="2" Style="{StaticResource stdSP}">
             <TextBlock Text="Password:" Style="{StaticResource lbl}" />
-            <TextBox Text="" Style="{StaticResource StdTBox}" />
+            <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StdTBox}" />
         </StackPanel>
-        <StackPanel Grid.Row="3">
+        <StackPanel Grid.Row="3" Style="{StaticResource stdSP}">
             <TextBlock Text="Confirmed password:" Style="{StaticResource lbl}" />
-            <TextBox Text="" Style="{StaticResource StdTBox}" />
+            <TextBox Text="{Binding ConfirmedPassword, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StdTBox}" />
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Grid.Row="4">
-            <Button Style="{StaticResource gBtn}" Content="Зарегистрировать" />
-            <Button Style="{StaticResource gBtn}" Content="Назад" Command="{Binding ToLoginViewCmd}" />
+        <StackPanel Orientation="Vertical" Grid.Row="4">
+            <TextBlock Text="{Binding ErrorMessage, UpdateSourceTrigger=PropertyChanged}" Width="355" TextAlignment="Center" Height="20" Margin="0 20" />
+            <StackPanel Style="{StaticResource stdSP}">
+                <Button Style="{StaticResource gBtn}" Content="Зарегистрировать" Command="{Binding RegisterUserCmd}" />
+                <Button Style="{StaticResource gBtn}" Content="Назад" Command="{Binding ToLoginViewCmd}" />
+            </StackPanel>
         </StackPanel>
     </Grid>
 </UserControl>

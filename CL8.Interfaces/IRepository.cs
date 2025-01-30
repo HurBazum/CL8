@@ -9,5 +9,6 @@ namespace CL8.Interfaces
         public Task<IEnumerable<T>> GetEntitiesAsync(Expression<Func<T, bool>> predicate);
         public Task<T> UpdateEntityAsync(T entity);
         public Task<T> DeleteEntityAsync(int id);
+        public IQueryable<T> GetAllEntities();
     }
 }

@@ -16,7 +16,11 @@
             </DockPanel>
         </StackPanel>
         <StackPanel Width="600">
-            
+            <ListBox Height="370"></ListBox>
+            <StackPanel Orientation="Horizontal" Margin="0 10">
+                <TextBox Width="410" Margin="10" Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Content="Отправить" Style="{StaticResource gBtn}" Command="{Binding SendMessageCmd}" />
+            </StackPanel>
         </StackPanel>
     </DockPanel>
 </UserControl>
