@@ -5,6 +5,7 @@
              xmlns:tools="clr-namespace:CL8.UI.ViewModels.Tools"
              xmlns:models="clr-namespace:CL8.UI.ViewModels.UserVMs"
              xmlns:views="clr-namespace:CL8.UI.Views.Pages.Users"
+             xmlns:conv="clr-namespace:CL8.UI.Infrastructure.Converters"
              StartupUri="/Views/Windows/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
@@ -19,6 +20,8 @@
             <DataTemplate DataType="{x:Type models:UserPageViewModel}">
                 <views:UserPageView />
             </DataTemplate>
+
+            <conv:PasswordConverter x:Key="pConverter" />
 
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Resources/Styles/ButtonDictionary.xaml" />

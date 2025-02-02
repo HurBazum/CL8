@@ -3,12 +3,23 @@ using CL8.UI.ViewModels.Base;
 using CL8.UI.ViewModels.Tools;
 using System.Windows.Input;
 using CL8.BLL.Services.SpecialInterfaces;
+using System.Windows.Controls;
+using System.Text.RegularExpressions;
 
 namespace CL8.UI.ViewModels.UserVMs
 {
-    public class UserRegisterViewModel(IUserService userService) : ViewModelBase
+    public partial class UserRegisterViewModel(IUserService userService) : ViewModelBase
     {
         private readonly IUserService _userService = userService;
+
+        private string? _userEmail;
+
+        public string? UserEmail
+        {
+            get => _userEmail;
+            set => Set(ref _userEmail, value);
+        }
+
         private string? _login;
         public string? Login
         {
@@ -47,10 +58,19 @@ namespace CL8.UI.ViewModels.UserVMs
 
         private ICommand? _registerUserCmd;
         public ICommand RegisterUserCmd => _registerUserCmd ?? new LambdaCommand(RegisterUserCmdExecuted, CanRegisterUserCmdExecute);
-        private bool CanRegisterUserCmdExecute(object parameter) => true;
+        private bool CanRegisterUserCmdExecute(object parameter)
+        {
+            if(!string.IsNullOrEmpty(UserEmail) && EmailCheckRegex().IsMatch(UserEmail))
+            {
+                return true;
+            }
+            return false;
+        }
         private async void RegisterUserCmdExecuted(object parameter)
         {
-            var result = await _userService.TryRegisterUserAsync(Login, Password, ConfirmedPassword);
+            var tuple = parameter as Tuple<PasswordBox, PasswordBox>;
+
+            var result = await _userService.TryRegisterUserAsync(Login, UserEmail, tuple.Item1.Password, tuple.Item2.Password);
 
             if(result.Value is null)
             {
@@ -61,5 +81,10 @@ namespace CL8.UI.ViewModels.UserVMs
                 ToLoginViewCmdExecuted(parameter);
             }
         }
+
+
+        /* atleast */
+        [GeneratedRegex(@"^[^@\s]+\@[^@\s]+\.[{com|ru}]+$")]
+        private static partial Regex EmailCheckRegex();
     }
 }

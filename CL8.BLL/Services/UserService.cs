@@ -1,7 +1,9 @@
 ﻿using CL8.BLL.Infrastructure;
+using CL8.BLL.Infrastructure.CustomExceptions;
 using CL8.BLL.Services.SpecialInterfaces;
 using CL8.DAL.Entities;
 using CL8.Interfaces;
+using CL8.UI.Infrastructure.Others;
 
 namespace CL8.BLL.Services
 {
@@ -29,6 +31,7 @@ namespace CL8.BLL.Services
                 }
                 else
                 {
+                    password = PasswordProtector.Protect(password);
                     var confirmed = Equals(password, user.Password);
                     switch(confirmed)
                     {
@@ -53,7 +56,7 @@ namespace CL8.BLL.Services
             return response;
         }
 
-        public async Task<IResponse<UserDto>> TryRegisterUserAsync(string? username, string? password, string? confirmedPassword)
+        public async Task<IResponse<UserDto>> TryRegisterUserAsync(string? username, string? email, string? password, string? confirmedPassword)
         {
             var response = new BaseResponse<UserDto>();
 
@@ -75,27 +78,30 @@ namespace CL8.BLL.Services
 
             try
             {
+                if(await _userRepository.GetEntityAsync(u => u.Email == email) != null)
+                {
+                    throw new CustomException($"User with {email} already exists!");
+                }
+
                 switch(Equals(password, confirmedPassword))
                 {
                     case false:
                         response.Message = $"Passwords don't match!";
                         break;
                     case true:
-                        var user = await _userRepository.AddEntityAsync(new() { Name = username, Password = password });
+                        password = PasswordProtector.Protect(password);
+                        var u = new User() { Name = username, Password = password, Email = email };
+                        var user = await _userRepository.AddEntityAsync(u);
+                        response.Value = Transformer.ToDto(user);
                         break;
                 }
             }
-            catch
+            catch(Exception ex)
             {
-
+                response.Message = ex.Message;
             }
 
             return response;
-        }
-
-        public async Task<IResponse<IQueryable<User>>> TryDoSmthAsync(string name)
-        {
-            var response = new BaseResponse<IQueryable<User>>();
         }
     }
 }

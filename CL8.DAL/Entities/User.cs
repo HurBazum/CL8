@@ -6,7 +6,10 @@ namespace CL8.DAL.Entities
     {
         public int Id { get; set; }
         public string Name { get; set; } = null!;
+        
+        public string Email { get; set; } = null!;
         public string Password { get; set; } = null!;
         public ICollection<Message> Messages { get; set; } = [];
+        public ICollection<Chat> Chats { get; set; } = [];
     }
 }

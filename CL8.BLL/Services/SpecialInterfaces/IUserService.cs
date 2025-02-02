@@ -6,6 +6,6 @@ namespace CL8.BLL.Services.SpecialInterfaces
     public interface IUserService
     {
         public Task<IResponse<UserDto>> TryLoginAsync(string username, string? password = null);
-        public Task<IResponse<UserDto>> TryRegisterUserAsync(string? username, string? password, string? confirmedPassword);
+        public Task<IResponse<UserDto>> TryRegisterUserAsync(string? username, string? email, string? password, string? confirmedPassword);
     }
 }

@@ -14,7 +14,7 @@ namespace CL8.DAL.Repositories
             var entry = _ctx.Users.Entry(entity);
             entry.State = EntityState.Added;
             await _ctx.SaveChangesAsync();
-            return entry.Entity;
+            return entity;
         }
 
         public async Task<User> DeleteEntityAsync(int id)
@@ -28,7 +28,7 @@ namespace CL8.DAL.Repositories
 
         public async Task<IEnumerable<User>> GetEntitiesAsync(Expression<Func<User, bool>> predicate) => await GetAllEntities().Where(predicate).ToListAsync();
 
-        public async Task<User> GetEntityAsync(Expression<Func<User, bool>> predicate) => await GetAllEntities().FirstOrDefaultAsync(predicate);
+        public async Task<User> GetEntityAsync(Expression<Func<User, bool>> predicate) => await GetAllEntities().Include(u => u.Chats).ThenInclude(u => u.Messages).FirstOrDefaultAsync(predicate);
 
         public async Task<User> UpdateEntityAsync(User entity)
         {

@@ -8,6 +8,7 @@ namespace CL8.BLL
     {
         public static IServiceCollection AddServices(this IServiceCollection services) => services
             .AddTransient<IUserService, UserService>()
-            .AddTransient<IMessageService, MessageService>();
+            .AddTransient<IMessageService, MessageService>()
+            .AddTransient<IChatService, ChatService>();
     }
 }

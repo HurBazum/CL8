@@ -12,6 +12,10 @@ namespace CL8.DAL.Tools
 
         public static IServiceCollection AddRepositories(this IServiceCollection services) => services
             .AddTransient<IRepository<User>, UserRepository>()
-            .AddTransient<IRepository<Message>, MessageRepository>();
+            .AddTransient<IRepository<Message>, MessageRepository>()
+            .AddTransient<IRepository<Chat>, BaseRepository<Chat>>()
+            .AddTransient<IConnector, Connector>()
+            .AddTransient<IUserRelationReceiver<User>, UserRelationReceiver>()
+            .AddTransient<IChatRelationReceiver<Chat>, ChatRelationReceiver>();
     }
 }

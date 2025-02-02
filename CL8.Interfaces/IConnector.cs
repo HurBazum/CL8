@@ -2,6 +2,7 @@
 {
     public interface IConnector
     {
-        public bool Connect(int firstId, int secondId);
+        public Task ConnectAsync(int userId, int chatId);
+        public Task ConnectMessageAndChatAsync(int messageId, string chatName);
     }
 }

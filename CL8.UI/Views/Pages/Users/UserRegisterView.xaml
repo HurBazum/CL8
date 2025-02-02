@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:conv="clr-namespace:CL8.UI.Infrastructure.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CL8.UI.Views.Pages.Users"
              mc:Ignorable="d" 
@@ -12,8 +13,9 @@
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="50" />
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="50" />
+            <RowDefinition Height="50" />
+            <RowDefinition Height="50" />
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.Resources>
@@ -31,26 +33,37 @@
                 <Setter Property="FontSize" Value="20" />
                 <Setter Property="FontWeight" Value="ExtraBold" />
             </Style>
-        </Grid.Resources>
+        </Grid.Resources>        
         <StackPanel Style="{StaticResource stdSP}">
             <TextBlock Style="{StaticResource Header}" Text="Регистрация" />
         </StackPanel>
         <StackPanel Grid.Row="1" Style="{StaticResource stdSP}">
+            <TextBlock Style="{StaticResource lbl}" Text="Email:" />
+            <TextBox Style="{StaticResource StdTBox}" Text="{Binding UserEmail, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
+        <StackPanel Grid.Row="2" Style="{StaticResource stdSP}">
             <TextBlock Text="Login:" Style="{StaticResource lbl}" />
             <TextBox Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StdTBox}" />
         </StackPanel>
-        <StackPanel Grid.Row="2" Style="{StaticResource stdSP}">
-            <TextBlock Text="Password:" Style="{StaticResource lbl}" />
-            <TextBox Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StdTBox}" />
-        </StackPanel>
         <StackPanel Grid.Row="3" Style="{StaticResource stdSP}">
-            <TextBlock Text="Confirmed password:" Style="{StaticResource lbl}" />
-            <TextBox Text="{Binding ConfirmedPassword, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource StdTBox}" />
+            <TextBlock Text="Password:" Style="{StaticResource lbl}" />
+            <PasswordBox x:Name="pBox" Style="{StaticResource PBox}" />
         </StackPanel>
-        <StackPanel Orientation="Vertical" Grid.Row="4">
+        <StackPanel Grid.Row="4" Style="{StaticResource stdSP}">
+            <TextBlock Text="Confirmed password:" Style="{StaticResource lbl}" />
+            <PasswordBox x:Name="cpBox" Style="{StaticResource PBox}" />
+        </StackPanel>
+        <StackPanel Orientation="Vertical" Grid.Row="5">
             <TextBlock Text="{Binding ErrorMessage, UpdateSourceTrigger=PropertyChanged}" Width="355" TextAlignment="Center" Height="20" Margin="0 20" />
             <StackPanel Style="{StaticResource stdSP}">
-                <Button Style="{StaticResource gBtn}" Content="Зарегистрировать" Command="{Binding RegisterUserCmd}" />
+                <Button Style="{StaticResource gBtn}" Content="Зарегистрировать" Command="{Binding RegisterUserCmd}">
+                    <Button.CommandParameter>
+                        <MultiBinding Converter="{StaticResource pConverter}">
+                            <Binding ElementName="pBox" />
+                            <Binding ElementName="cpBox" />
+                        </MultiBinding>
+                    </Button.CommandParameter>
+                </Button>
                 <Button Style="{StaticResource gBtn}" Content="Назад" Command="{Binding ToLoginViewCmd}" />
             </StackPanel>
         </StackPanel>

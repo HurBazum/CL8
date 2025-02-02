@@ -2,7 +2,6 @@
 using System.Windows.Input;
 using CL8.UI.ViewModels.Tools;
 using CL8.UI.Infrastructure.Commands;
-using CL8.Interfaces;
 using System.Windows.Controls;
 using CL8.BLL.Services.SpecialInterfaces;
 
@@ -16,12 +15,6 @@ namespace CL8.UI.ViewModels.UserVMs
         {
             get => _login;
             set => Set(ref _login, value);
-        }
-        private string? _password = string.Empty;
-        public string? Password
-        {
-            get => _password;
-            set => Set(ref _password, value);
         }
         private string? _errorMessage;
         public string? ErrorMessage

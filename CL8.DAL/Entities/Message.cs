@@ -9,6 +9,8 @@ namespace CL8.DAL.Entities
         public string Content { get; set; } = null!;
         public DateTime CreatedDate { get; set; }
         public int UserId { get; set; }
+        public int ChatId { get; set; }
         public User User { get; set; } = null!;
+        public Chat Chat { get; set; }
     }
 }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CL8.UI"
         mc:Ignorable="d"
-        Height="450" Width="800"
+        Height="470" Width="820"
         DataContext="{Binding MainViewModel, Source={StaticResource Locator}}"
         Title="{Binding Title}"
         Background="#FFAEDE87">
