@@ -2,14 +2,16 @@
 
 Client client = new();
 
+CancellationTokenSource cts = new();
+
 await client.ConnectToServerAsync();
 
-await client.RegisterAsync();
+await client.RegisterAsync(CancellationToken.None);
 
-Thread sender = new(async o => await client.SendMessageAsync());
+Thread sender = new(async o => await client.SendMessageAsync(cts.Token));
 
 sender.Start();
 
-await client.ReceiveMessageAsync();
+await client.ReceiveMessagesAsync(cts.Token);
 
 Console.ReadLine();

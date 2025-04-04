@@ -83,19 +83,8 @@ namespace CL8.UI.ViewModels.UserVMs
         private bool CanCreateChatCmdExecute(object parameter) => true;
         private async void CreateChatCmdExecuted(object parameter)
         {
-            Random random = new Random();
-            var result = await _chatService.CreateChatAsync($"{App.CurrentUser.Email}_chat{random.Next(1,8098)}[{Chats.Count}]", "", App.CurrentUser.Id);
-
-
-            if(result.Value is not null)
-            {
-                Chats.Add(Infrastructure.Converters.Transformer.ToModel(result.Value));
-                OnPropertyChanged(nameof(Chats));
-            }
-            else
-            {
-                Error = result.Message;
-            }
+            App.Store.NextPage(ViewModelLocator.CreateChatViewModel);
+            OnPropertyChanged(nameof(ViewModelLocator.MainViewModel.ViewModel));
         }
 
         private ICommand? _sendMessageCmd;
@@ -129,6 +118,14 @@ namespace CL8.UI.ViewModels.UserVMs
             }
         }
 
+        private ICommand? _toSearchChatCmd;
+        public ICommand ToSearchChatCmd => _toSearchChatCmd ?? new LambdaCommand(ToSearchChatCmdExecuted, CanToSearchChatCmdExecute);
+        private bool CanToSearchChatCmdExecute(object parameter) => true;
+        private void ToSearchChatCmdExecuted(object parameter)
+        {
+            App.Store.NextPage(ViewModelLocator.SearchChatViewModel);
+            OnPropertyChanged(nameof(ViewModelLocator.MainViewModel.ViewModel));
+        }
         #endregion
     }
 }

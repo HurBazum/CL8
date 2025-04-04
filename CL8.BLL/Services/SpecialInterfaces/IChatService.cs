@@ -7,5 +7,6 @@ namespace CL8.BLL.Services.SpecialInterfaces
     {
         public Task<IResponse<ChatDto>> CreateChatAsync(string? chatName, string? chatDescription,int userId);
         public Task<IResponse<List<ChatDto>>> GetUserChatsAsync(int userId);
+        public Task<IResponse<List<ChatDto>>> GetChatsByName(string chatName);
     }
 }

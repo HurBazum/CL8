@@ -4,6 +4,8 @@
              xmlns:local="clr-namespace:CL8.UI"
              xmlns:tools="clr-namespace:CL8.UI.ViewModels.Tools"
              xmlns:models="clr-namespace:CL8.UI.ViewModels.UserVMs"
+             xmlns:c_models="clr-namespace:CL8.UI.ViewModels.ChatVMs"
+             xmlns:c_views="clr-namespace:CL8.UI.Views.Pages.Chats"
              xmlns:views="clr-namespace:CL8.UI.Views.Pages.Users"
              xmlns:conv="clr-namespace:CL8.UI.Infrastructure.Converters"
              StartupUri="/Views/Windows/MainWindow.xaml">
@@ -19,6 +21,12 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type models:UserPageViewModel}">
                 <views:UserPageView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type c_models:SearchChatViewModel}">
+                <c_views:SearchChatPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type c_models:CreateChatViewModel}">
+                <c_views:CreateChatPage />
             </DataTemplate>
 
             <conv:PasswordConverter x:Key="pConverter" />

@@ -24,6 +24,7 @@
                 </ListBox>
                 <StackPanel>
                     <Button Content="add" Style="{StaticResource gBtn}" Command="{Binding CreateChatCmd}" />
+                    <Button Content="Search" Style="{StaticResource gBtn}" Command="{Binding ToSearchChatCmd}" />
                     <Button Content="Выйти" Style="{StaticResource gBtn}" Command="{Binding ExitCmd}" />
                 </StackPanel>
             </DockPanel>
@@ -40,7 +41,7 @@
                 </ListBox.ItemTemplate>
             </ListBox>
             <StackPanel Orientation="Horizontal" Margin="0 10">
-                <TextBox Width="410" Margin="10" Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Width="410" Margin="10" Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}" Padding="5 2" />
                 <Button Content="Отправить" Style="{StaticResource gBtn}" Command="{Binding SendMessageCmd}" />
             </StackPanel>
         </StackPanel>

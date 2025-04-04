@@ -3,19 +3,33 @@ using System.Net;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
 namespace CL8
 {
-    public class Server(int port)
+    public class Server
     {
-        private int _port = port;
-        private Socket _listener = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        private IPEndPoint _endPoint = new(IPAddress.Any, port);
+        private int _port;
+        private Socket _listener;
+        private IPEndPoint _endPoint;
         public CancellationTokenSource _cts = new();
         private ReaderWriterLockSlim _lock = new();
         private ConcurrentDictionary<EndPoint, ConnectedClient> _sockets = [];
-        private Stack<MessageObject> _messages = [];
+        private ConcurrentStack<MessageObject> _messages = [];
         private Encoding _encoder = Encoding.UTF8;
+
+
+        // 
+        public Server(int port)
+        {
+            if(port < 1 || port > 65535)
+            {
+                throw new ArgumentException("Порт должен быть в диапазоне от 1 до 65535");
+            }
+            _port = port;
+            _listener = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _endPoint = new(IPAddress.Any, port);
+        }
 
         public void Start()
         {
@@ -24,118 +38,214 @@ namespace CL8
             Console.WriteLine("Сервер запущен. Ожидание подключений. . .");
         }
 
-        public async Task GetConnectionsAsync()
+        public async Task GetConnectionsAsync(CancellationToken cancellationToken)
         {
-            while(_cts.IsCancellationRequested == false)
+            while(!cancellationToken.IsCancellationRequested)
             {
-                var client = await _listener.AcceptAsync();
-                
-                var cc = new ConnectedClient(client);
+                try
+                {
+                    var client = await _listener.AcceptAsync(cancellationToken);
 
-                _sockets.TryAdd(client.RemoteEndPoint, cc);
-                Console.WriteLine($"{client.RemoteEndPoint}");
-                ThreadPool.QueueUserWorkItem(async o => await ProccessClientAsync(cc));
+                    var cc = new ConnectedClient(client);
+
+                    _sockets.TryAdd(client.RemoteEndPoint, cc);
+                    Console.WriteLine($"{client.RemoteEndPoint} подключился");
+                    _ = Task.Run(() => ProccessClientAsync(cc, cancellationToken), cancellationToken);
+                }
+                catch(OperationCanceledException)
+                {
+                    Console.WriteLine("Приём подключений остановлен");
+                    break;
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine($"Ошибка подключения: {ex.Message}");
+                }
             }
         }
 
-        private async Task ProccessClientAsync(ConnectedClient cc)
+        private async Task ProccessClientAsync(ConnectedClient cc, CancellationToken ct)
         {
             CancellationTokenSource streamCts = new();
             while(streamCts.IsCancellationRequested == false && cc.Socket.Connected)
             {
                 try
                 {
-                    var buffer = new byte[1024];
-                    int recBytes = await cc.Socket.ReceiveAsync(buffer);                    
-                    var request = _encoder.GetString(buffer, 0, recBytes);
-                    var received = JsonSerializer.Deserialize<MessageObject>(request);
-                    byte[] responseBuffer;
-                    switch(received.Type)
+                    var lengthBuffer = new byte[4];
+
+                    int bytesRead = await ReadExactAsync(cc.Socket, lengthBuffer, 4, ct);                    
+                    
+                    // клиент оключился
+                    if(bytesRead == 0)
                     {
-                        case MessageType.Disconnect:
-                            string n = cc.Socket.RemoteEndPoint.ToString();
-                            _sockets.Remove(cc.Socket.RemoteEndPoint, out cc);
-                            await SayDisconnect(cc);
-                            if(_sockets.Count == 0)
-                            {
-                                _cts.Cancel();
-                                Console.WriteLine($"{n} отключился");
-                                Console.WriteLine("Сервер остановлен");
-                            }
-                            else
-                            {
-                                streamCts.Cancel();
-                                Console.WriteLine($"{n} отключился");
-                            }
-                            break;
-                        case MessageType.Other:
-                            await SendResponseToCLientAsync("Запрос получен", cc);
-                            break;
-                        case MessageType.Register:
-                            cc.SetLogin(received.Content);
-                            await SendResponseToCLientAsync(Guid.NewGuid().ToString(), cc);
-                            break;
-                        case MessageType.Chat:
-                            received.EndPoint = cc.Socket.RemoteEndPoint;
-                            received.Content = string.Concat(cc.Login, ": ", received.Content);
-                            _lock.EnterWriteLock();
-                            _messages.Push(received);
-                            _lock.ExitWriteLock();
-                            break;
+                        await HandleDisconnectAsync(cc, ct);
+                        break;
                     }
+                    
+                    // проверка длины сообщения
+                    int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
+                    if(messageLength <= 0 || messageLength > 1024 *1024)
+                    {
+                        Console.WriteLine("Некорректная длина сообщения");
+                        continue;
+                    }
+
+                    byte[] messageBuffer = new byte[messageLength];
+                    bytesRead = await ReadExactAsync(cc.Socket, messageBuffer, messageLength, ct);
+
+                    if(bytesRead == 0)
+                    {
+                        await HandleDisconnectAsync(cc, ct);
+                        break;
+                    }
+
+                    var request = _encoder.GetString(messageBuffer, 0, bytesRead);
+                    var received = JsonSerializer.Deserialize<MessageObject>(request);
+
+                    await ProccessMessageAsync(cc, received, ct);
                 }
                 catch(Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine($"Ошибка обработки клиента {cc.Socket.RemoteEndPoint}: {ex.Message}");
                 }
             }
         }
 
-        private async Task SendResponseToCLientAsync(string response, ConnectedClient client)
+        private async Task ProccessMessageAsync(ConnectedClient cc, MessageObject mo, CancellationToken ct)
         {
-            var responseBuffer = _encoder.GetBytes(response);
-            await client.Stream.WriteAsync(responseBuffer.AsMemory(0, responseBuffer.Length));
-            await client.Stream.FlushAsync();
+            switch(mo.Type)
+            {
+                case MessageType.Disconnect:
+                    await HandleDisconnectAsync(cc, ct);
+                    break;
+                case MessageType.Other:
+                    await SendResponseToCLientAsync("request was received. This is server's response.", cc, ct);
+                    break;
+                case MessageType.Register:
+                    await HandleRegisterCLientAsync(cc, mo, ct);
+                    break;
+                case MessageType.Chat:
+                    await HandleChatAsync(cc, mo);
+                    break;
+            }
         }
 
-        public async Task BroadcastAsync()
+        private async Task SendResponseToCLientAsync(string response, ConnectedClient client, CancellationToken ct)
         {
-            while(_listener.IsBound)
+            var responseLength = BitConverter.GetBytes(response.Length);
+            var responseBuffer = _encoder.GetBytes(response);
+            await client.Stream.WriteAsync(responseLength, ct);
+            await client.Stream.WriteAsync(responseBuffer, ct);
+            await client.Stream.FlushAsync(ct);
+        }
+
+        public async Task BroadcastAsync(CancellationToken ct)
+        {
+            while(_listener.IsBound && !ct.IsCancellationRequested)
             {
-                if(_messages.Count > 0)
+                try
                 {
-                    var msg = _messages.Peek();
-                    byte[] buffer = _encoder.GetBytes(msg.Content);
-                    foreach(var client in _sockets.Values)
+                    if(_messages.TryPop(out var msg))
                     {
-                        if(client.Socket.RemoteEndPoint != msg.EndPoint)
+                        //byte[] buffer = _encoder.GetBytes(msg.Content);
+                        foreach(var client in _sockets.Values)
                         {
-                            await client.Stream.WriteAsync(buffer.AsMemory(0, buffer.Length));
-                            await client.Stream.FlushAsync();
+                            if(client.Socket.RemoteEndPoint != msg.EndPoint)
+                            {
+                                try
+                                {
+                                    /*await client.Stream.WriteAsync(buffer.AsMemory(0, buffer.Length));
+                                    await client.Stream.FlushAsync();*/
+
+                                    await SendResponseToCLientAsync(msg.Content, client, ct);
+                                }
+                                catch(Exception ex)
+                                {
+                                    Console.WriteLine($"Ошибка отправки {client.Socket.RemoteEndPoint}: {ex.Message}");
+                                }
+                            }
                         }
                     }
-                    _messages.Pop();
+                    else
+                    {
+                        // чтобы не гонять CPU
+                        await Task.Delay(100, ct);
+                    }
                 }
-                else
+                catch(OperationCanceledException)
                 {
-                    continue;
+                    Console.WriteLine("Рассылка сообщений остановлена.");
+                    break;
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine($"Ошибка рассылки: {ex.Message}");
                 }
             }
         }
 
-        private async Task SayDisconnect(ConnectedClient cc)
+        private async Task SayDisconnect(ConnectedClient cc, CancellationToken ct)
         {
-            var responseBuffer = Encoding.UTF8.GetBytes("Запрос на отключение получен");
-            await cc.Stream.WriteAsync(responseBuffer.AsMemory(0, responseBuffer.Length));
-            await cc.Stream.FlushAsync();
+            var disconnectResponse = "shutdown request was accepted";
 
-            await Task.Delay(1000);
+            await SendResponseToCLientAsync(disconnectResponse, cc, ct);
+
+            await Task.Delay(1000, ct);
+
             cc.Socket.Shutdown(SocketShutdown.Both);
 
             cc.Stream.Close();
 
             cc.Stream.Dispose();
             cc.Socket.Close();
+        }
+
+        private async Task HandleDisconnectAsync(ConnectedClient cc, CancellationToken ct)
+        {
+            string endpoint = cc.Socket.RemoteEndPoint.ToString();
+            _sockets.TryRemove(cc.Socket.RemoteEndPoint, out _);
+            await SayDisconnect(cc, ct);
+            Console.WriteLine($"{endpoint} disconnected");
+            if(_sockets.IsEmpty)
+            {
+                _cts.Cancel();
+            }
+        }
+
+        private async Task HandleRegisterCLientAsync(ConnectedClient cc, MessageObject mo, CancellationToken ct)
+        {
+            cc.SetLogin(mo.Content);
+            await SendResponseToCLientAsync(Guid.NewGuid().ToString(), cc, ct);
+        }
+
+        private async Task HandleChatAsync(ConnectedClient cc, MessageObject mo)
+        {
+            mo.EndPoint = cc.Socket.RemoteEndPoint;
+            mo.Content = $"{cc.Login}: {mo.Content}";
+            _lock.EnterWriteLock();
+            try
+            {
+                _messages.Push(mo);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+
+        private async Task<int> ReadExactAsync(Socket socket, byte[] buffer, int length, CancellationToken ct)
+        {
+            int totalRead = 0;
+            while(totalRead < length)
+            {
+                int read = await socket.ReceiveAsync(buffer.AsMemory(totalRead, length - totalRead), ct);
+                if(read == 0)
+                {
+                    return 0;
+                }
+                totalRead += read;
+            }
+            return totalRead;
         }
     }
 }

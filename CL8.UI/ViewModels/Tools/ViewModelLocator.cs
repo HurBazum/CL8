@@ -1,4 +1,5 @@
-﻿using CL8.UI.ViewModels.UserVMs;
+﻿using CL8.UI.ViewModels.ChatVMs;
+using CL8.UI.ViewModels.UserVMs;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CL8.UI.ViewModels.Tools
@@ -9,5 +10,7 @@ namespace CL8.UI.ViewModels.Tools
         public static UserLoginViewModel UserLoginViewModel => App.Host.Services.GetRequiredService<UserLoginViewModel>();
         public static UserRegisterViewModel UserRegisterViewModel => App.Host.Services.GetRequiredService<UserRegisterViewModel>();
         public static UserPageViewModel UserPageViewModel => App.Host.Services.GetRequiredService<UserPageViewModel>();
+        public static SearchChatViewModel SearchChatViewModel => App.Host.Services.GetRequiredService<SearchChatViewModel>();
+        public static CreateChatViewModel CreateChatViewModel => App.Host.Services.GetRequiredService<CreateChatViewModel>();
     }
 }

@@ -60,5 +60,22 @@ namespace CL8.BLL.Services
 
             return response;
         }
+        public async Task<IResponse<List<ChatDto>>> GetChatsByName(string chatName)
+        {
+            var response = new BaseResponse<List<ChatDto>>();
+
+            var chats = await _chatRepository.GetEntitiesAsync(c => c.Name.StartsWith(chatName));
+
+            if(chats.Any())
+            {
+                response.Value= Transformer.ToDto(chats);
+            }
+            else
+            {
+                response.Message = $"There aren't chats start with that letters";
+            }
+
+            return response;
+        }
     }
 }

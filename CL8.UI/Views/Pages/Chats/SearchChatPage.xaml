@@ -1,0 +1,34 @@
+﻿<UserControl x:Class="CL8.UI.Views.Pages.Chats.SearchChatPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:CL8.UI.Views.Pages.Chats"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" d:Background="Azure">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70" />
+            <RowDefinition />
+            <RowDefinition Height="70" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="0">
+            <TextBox Text="{Binding Request, UpdateSourceTrigger=PropertyChanged}" Width="230" />
+            <Button Content="Search" Command="{Binding SearchCmd}" Style="{StaticResource gBtn}" />
+        </StackPanel>
+        <ListBox Grid.Row="1" ItemsSource="{Binding Chats}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding Description}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="2">
+            <Button Content="Cancel" Style="{StaticResource gBtn}" Command="{Binding CancelCmd}" />
+        </StackPanel>
+    </Grid>
+</UserControl>
